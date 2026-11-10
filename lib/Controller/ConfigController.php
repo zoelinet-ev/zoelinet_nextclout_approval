@@ -126,8 +126,8 @@ class ConfigController extends Controller {
 	 */
 	#[AuthorizedAdminSetting(settings: Admin::class)]
 	public function createRule(int $tagPending, int $tagApproved, int $tagRejected,
-		array $approvers, array $requesters, string $description, bool $unapproveWhenModified): DataResponse {
-		$result = $this->ruleService->createRule($tagPending, $tagApproved, $tagRejected, $approvers, $requesters, $description, $unapproveWhenModified);
+		array $approvers, array $requesters, string $description, bool $unapproveWhenModified, bool $notifyRequesterOnly = false): DataResponse {
+		$result = $this->ruleService->createRule($tagPending, $tagApproved, $tagRejected, $approvers, $requesters, $description, $unapproveWhenModified, $notifyRequesterOnly);
 		return isset($result['error'])
 			? new DataResponse($result, 400)
 			: new DataResponse($result['id']);
@@ -146,8 +146,8 @@ class ConfigController extends Controller {
 	 */
 	#[AuthorizedAdminSetting(settings: Admin::class)]
 	public function saveRule(int $id, int $tagPending, int $tagApproved, int $tagRejected,
-		array $approvers, array $requesters, string $description, bool $unapproveWhenModified): DataResponse {
-		$result = $this->ruleService->saveRule($id, $tagPending, $tagApproved, $tagRejected, $approvers, $requesters, $description, $unapproveWhenModified);
+		array $approvers, array $requesters, string $description, bool $unapproveWhenModified, bool $notifyRequesterOnly = false): DataResponse {
+		$result = $this->ruleService->saveRule($id, $tagPending, $tagApproved, $tagRejected, $approvers, $requesters, $description, $unapproveWhenModified, $notifyRequesterOnly);
 		return isset($result['error'])
 			? new DataResponse($result, 400)
 			: new DataResponse($result['id']);

@@ -147,6 +147,19 @@ class ApprovalServiceTest extends TestCase {
 		$this->assertEquals('desc1', $result[0]['description']);
 	}
 
+	public function testNotificationRecipientsSetting(): void {
+		$rule = $this->ruleService->getRule($this->idRule1);
+		$this->assertFalse($rule['notifyRequesterOnly']);
+
+		$this->ruleService->saveRule(
+			$this->idRule1, $this->idTagPending1, $this->idTagApproved1, $this->idTagRejected1,
+			$this->approvers1, $this->requesters1, $this->description1, false, true
+		);
+
+		$this->assertTrue($this->ruleService->getRule($this->idRule1)['notifyRequesterOnly']);
+		$this->assertTrue($this->ruleService->getRules()[$this->idRule1]['notifyRequesterOnly']);
+	}
+
 	public function testUserAccessCheck() {
 		$uf1 = $this->root->getUserFolder('user1');
 		$dummyFile = $uf1->newFile('dummyFile.txt', 'content');

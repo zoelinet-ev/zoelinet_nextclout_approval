@@ -133,6 +133,23 @@
 					type="warning" />
 			</div>
 			<div class="checkbox">
+				<span class="field-label">{{ notificationRecipientsLabel }}</span>
+				<label>
+					<input type="radio"
+						:name="'approval-notifications-' + (value.id ?? 'new')"
+						:checked="!value.notifyRequesterOnly"
+						@change="update('notifyRequesterOnly', false)">
+					{{ notifyAllLabel }}
+				</label>
+				<label>
+					<input type="radio"
+						:name="'approval-notifications-' + (value.id ?? 'new')"
+						:checked="value.notifyRequesterOnly"
+						@change="update('notifyRequesterOnly', true)">
+					{{ notifyRequesterLabel }}
+				</label>
+			</div>
+			<div class="checkbox">
 				<NcFormBoxSwitch
 					:model-value="value.unapproveWhenModified"
 					type="switch"
@@ -197,6 +214,9 @@ export default {
 			rejectedLabel: t('approval', 'Tag set on rejection'),
 			descriptionLabel: t('approval', 'Workflow title'),
 			checkboxLabel: t('approval', 'Remove file approval when file is modified'),
+			notificationRecipientsLabel: t('approval', 'Notify on approval or rejection'),
+			notifyAllLabel: t('approval', 'All users with access to the file'),
+			notifyRequesterLabel: t('approval', 'Only the user who requested approval'),
 			descriptionPlaceholder: t(
 				'approval',
 				'What is the purpose of this workflow?',

@@ -180,6 +180,13 @@ class ActivityManager {
 			$userIds = $additionalParams['users'];
 		} elseif ($subject === self::SUBJECT_REQUESTED_ORIGIN) {
 			$userIds[] = $additionalParams['origin_user_id'];
+		} elseif (($subject === self::SUBJECT_APPROVED || $subject === self::SUBJECT_REJECTED)
+			&& ($additionalParams['notifyRequesterOnly'] ?? false)) {
+			$requesterId = $additionalParams['requesterUserId'] ?? null;
+			if ($requesterId !== null && $this->userManager->get($requesterId) !== null
+				&& $root->getUserFolder($requesterId)->getFirstNodeById($entity) !== null) {
+				$userIds[] = $requesterId;
+			}
 		} else {
 			// publish for eveyone having access
 			$this->userManager->callForSeenUsers(function (IUser $user) use ($event, $root, $entity, &$userIds) {

@@ -399,11 +399,11 @@ class ApprovalService {
 						$this->tagObjectMapper->assignTags((string)$fileId, 'files', $rule['tagApproved']);
 						$this->tagObjectMapper->unassignTags((string)$fileId, 'files', $rule['tagPending']);
 
-						$this->sendApprovalNotification($fileId, $userId, true);
+						$this->sendApprovalNotification($fileId, $userId, true, $rule['notifyRequesterOnly'], $pendingAction['userId'] ?? null);
 						$this->activityManager->triggerEvent(
 							ActivityManager::APPROVAL_OBJECT_NODE, $fileId,
 							ActivityManager::SUBJECT_APPROVED,
-							[]
+							['notifyRequesterOnly' => $rule['notifyRequesterOnly'], 'requesterUserId' => $pendingAction['userId'] ?? null]
 						);
 						return true;
 					}
@@ -451,11 +451,11 @@ class ApprovalService {
 						$this->tagObjectMapper->assignTags((string)$fileId, 'files', $rule['tagRejected']);
 						$this->tagObjectMapper->unassignTags((string)$fileId, 'files', $rule['tagPending']);
 
-						$this->sendApprovalNotification($fileId, $userId, false);
+						$this->sendApprovalNotification($fileId, $userId, false, $rule['notifyRequesterOnly'], $pendingAction['userId'] ?? null);
 						$this->activityManager->triggerEvent(
 							ActivityManager::APPROVAL_OBJECT_NODE, $fileId,
 							ActivityManager::SUBJECT_REJECTED,
-							[]
+							['notifyRequesterOnly' => $rule['notifyRequesterOnly'], 'requesterUserId' => $pendingAction['userId'] ?? null]
 						);
 						return true;
 					}
@@ -637,18 +637,18 @@ class ApprovalService {
 	}
 
 	/**
-	 * Send approval notifications for a given file to all users having access to it.
+	 * Send approval notifications to the configured recipients.
 	 *
 	 * @param int $fileId
 	 * @param string|null $approverId
 	 * @param bool $approved
 	 * @return void
 	 */
-	private function sendApprovalNotification(int $fileId, ?string $approverId, bool $approved): void {
+	private function sendApprovalNotification(int $fileId, ?string $approverId, bool $approved, bool $notifyRequesterOnly, ?string $requesterId): void {
 		$paramsByUser = [];
 		$root = $this->root;
-		// notification for eveyone having access except the one approving/rejecting
-		$this->userManager->callForSeenUsers(function (IUser $user) use ($root, $fileId, $approverId, &$paramsByUser) {
+		// notify only the requester or all users with access, excluding the approver
+		$notifyUser = function (IUser $user) use ($root, $fileId, $approverId, &$paramsByUser) {
 			$thisUserId = $user->getUID();
 			if ($thisUserId !== $approverId) {
 				$userFolder = $root->getUserFolder($thisUserId);
@@ -667,7 +667,16 @@ class ApprovalService {
 					];
 				}
 			}
-		});
+		};
+
+		if ($notifyRequesterOnly) {
+			$requester = $requesterId === null ? null : $this->userManager->get($requesterId);
+			if ($requester !== null) {
+				$notifyUser($requester);
+			}
+		} else {
+			$this->userManager->callForSeenUsers($notifyUser);
+		}
 
 		foreach ($paramsByUser as $userId => $params) {
 			$manager = $this->notificationManager;

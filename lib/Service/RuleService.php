@@ -25,6 +25,7 @@ use OCP\IUserManager;
  *      approvers: array,
  *      requesters: array,
  *      unapproveWhenModified: bool,
+ *      notifyRequesterOnly: bool,
  *  }
  */
 class RuleService {
@@ -120,7 +121,7 @@ class RuleService {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function saveRule(int $id, int $tagPending, int $tagApproved, int $tagRejected,
-		array $approvers, array $requesters, string $description, bool $unapproveWhenModified): array {
+		array $approvers, array $requesters, string $description, bool $unapproveWhenModified, bool $notifyRequesterOnly = false): array {
 		$this->cachedRules = null;
 		if (!$this->isValid($tagPending, $tagApproved, $tagRejected)) {
 			return ['error' => 'Invalid rule'];
@@ -137,6 +138,7 @@ class RuleService {
 		$qb->set('tag_rejected', $qb->createNamedParameter($tagRejected, IQueryBuilder::PARAM_INT));
 		$qb->set('description', $qb->createNamedParameter($description, IQueryBuilder::PARAM_STR));
 		$qb->set('unapprove_when_modified', $qb->createNamedParameter($unapproveWhenModified ? 1 : 0, IQueryBuilder::PARAM_INT));
+		$qb->set('notify_requester_only', $qb->createNamedParameter($notifyRequesterOnly ? 1 : 0, IQueryBuilder::PARAM_INT));
 		$qb->where(
 			$qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
 		);
@@ -231,7 +233,7 @@ class RuleService {
 	 * @return array id of created rule or error string
 	 */
 	public function createRule(int $tagPending, int $tagApproved, int $tagRejected,
-		array $approvers, array $requesters, string $description, bool $unapproveWhenModified): array {
+		array $approvers, array $requesters, string $description, bool $unapproveWhenModified, bool $notifyRequesterOnly = false): array {
 		$this->cachedRules = null;
 		if (!$this->isValid($tagPending, $tagApproved, $tagRejected)) {
 			return ['error' => 'Rule is invalid'];
@@ -249,6 +251,7 @@ class RuleService {
 				'tag_rejected' => $qb->createNamedParameter($tagRejected, IQueryBuilder::PARAM_INT),
 				'description' => $qb->createNamedParameter($description, IQueryBuilder::PARAM_STR),
 				'unapprove_when_modified' => $qb->createNamedParameter($unapproveWhenModified ? 1 : 0, IQueryBuilder::PARAM_INT),
+				'notify_requester_only' => $qb->createNamedParameter($notifyRequesterOnly ? 1 : 0, IQueryBuilder::PARAM_INT),
 			]);
 		$qb->executeStatement();
 		$qb = $qb->resetQueryParts();
@@ -352,6 +355,7 @@ class RuleService {
 				'tagApproved' => $tagApproved,
 				'tagRejected' => $tagRejected,
 				'description' => $description,
+				'notifyRequesterOnly' => (int)$row['notify_requester_only'] === 1,
 				'approvers' => [],
 				'requesters' => [],
 			];
@@ -395,6 +399,7 @@ class RuleService {
 					'tagApproved' => $tagApproved,
 					'tagRejected' => $tagRejected,
 					'description' => $description,
+					'notifyRequesterOnly' => (int)$row['notify_requester_only'] === 1,
 					'approvers' => [],
 					'requesters' => [],
 					'unapproveWhenModified' => (int)$row['unapprove_when_modified'] === 1,

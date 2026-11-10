@@ -273,6 +273,7 @@ export default {
 						}
 					}),
 					unapproveWhenModified: rule.unapproveWhenModified,
+					notifyRequesterOnly: rule.notifyRequesterOnly,
 				}
 				const url = generateUrl('/apps/approval/rule/' + id)
 				axios.put(url, req).then((response) => {
@@ -299,6 +300,7 @@ export default {
 				approvers: [],
 				requesters: [],
 				unapproveWhenModified: false,
+				notifyRequesterOnly: false,
 			}
 		},
 		onNewRuleDelete() {
@@ -327,6 +329,7 @@ export default {
 						}
 					}),
 					unapproveWhenModified: rule.unapproveWhenModified,
+					notifyRequesterOnly: rule.notifyRequesterOnly,
 				}
 				const url = generateUrl('/apps/approval/rule')
 				axios.post(url, req).then(() => {
